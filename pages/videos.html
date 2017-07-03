@@ -1,8 +1,17 @@
 <div class="videos-feed">
-  <h1>Videos</h1>
+  <h1 ng-if="fetchDelay < 1000">Videos</h1>
+  <h1 ng-if="fetchDelay === 1000">Slow Videos</h1>
+  <h1 ng-if="fetchDelay > 1000">Super Slow Videos</h1>
+  <p class="lead" ng-if="fetchDelay < 1000">Checkout our collection of Videos</p>
+  <p class="lead" ng-if="fetchDelay === 1000">Checkout our collection of Slow Videos</p>
+  <p class="lead" ng-if="fetchDelay > 1000">Checkout our collection of Super Slow Videos</p>
   <ul>
     <li data-ng-repeat="video in videos">
       <h2>{{ video.title }}</h2>
       <p>{{ video.description }}</p>
     </li>
+</div>
+
+<div ng-if="videos.length>0 && fetchDelay === 1000">
+  <a href="#!/videos/super-slow">Wanna try super slow version?</a>
 </div>

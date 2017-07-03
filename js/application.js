@@ -1,25 +1,32 @@
 var App;
 (function () {
   App = angular.module('App', ['ngRoute']);
+  var orgTitle = document.title;
+  var orgMeta;
+  var pageDescription = document.querySelector('meta[name=description]');
+  orgMeta = pageDescription.content;
 
-  App.run(['$rootScope', function ($rootScope) {
-    var _getTopScope = function () {
-      return $rootScope;
-      //return angular.element(document).scope();
-    };
-
+  App.run(['$rootScope', '$timeout', function ($rootScope, $timeout) {
     $rootScope.ready = function () {
-      var $scope = _getTopScope();
-      $scope.status = 'ready';
-      if (!$scope.$$phase) $scope.$apply();
+      $rootScope.status = 'ready';
+      if (!$rootScope.$$phase) $rootScope.$apply();
     };
     $rootScope.loading = function () {
-      var $scope = _getTopScope();
-      $scope.status = 'loading';
-      if (!$scope.$$phase) $scope.$apply();
+      $rootScope.status = 'loading';
+      if (!$rootScope.$$phase) $rootScope.$apply();
     };
     $rootScope.$on('$routeChangeStart', function () {
-      _getTopScope().loading();
+      $rootScope.loading();
+      $timeout(function () {
+        var h1 = document.querySelector('h1');
+        var p = document.querySelector('h1 + p.lead');
+        if (h1) {
+          document.title = h1.textContent + ' :: ' + orgTitle;
+        } else {
+          document.title = orgTitle;
+        }
+        pageDescription.content = (p && p.textContent + ' injected with script') || orgMeta;
+      }, 100, false);
     });
   }]);
 
@@ -29,26 +36,29 @@ var App;
     $scope.names = ['matias', 'val', 'mark'];
   }]);
 
-  App.controller('VideosCtrl', ['$scope', '$http', 'slow', function ($scope, $http, isSlow) {
+  App.controller('VideosCtrl', ['$scope', '$http', 'fetchDelay', function ($scope, $http, fetchDelay) {
     var url = './data/videos.json';
-    var timeout = isSlow ? 2000 : 1;
+    $scope.fetchDelay = fetchDelay;
     $http.get(url).then(function (response) {
       setTimeout(function () {
         var feed = response.data['feed'];
         var entries = feed['entry'];
         $scope.videos = [];
         var from = 0;
-        var to = entries.length / 2;
-        if (isSlow) {
-          from = to;
+        var to = Math.floor(entries.length / 3);
+        if (fetchDelay > 3000) {
+          from = Math.ceil(to * 2);
           to = entries.length;
+        } else if (fetchDelay > 500) {
+          from = to;
+          to = 2 * (entries.length / 3);
         }
         for (var i = from; i < to; i++) {
           var entry = entries[i];
           $scope.videos.push(entry);
         };
         $scope.ready();
-      }, timeout);
+      }, fetchDelay);
     });
   }]);
 
@@ -65,8 +75,8 @@ var App;
       controller: 'VideosCtrl',
       templateUrl: './pages/videos.html',
       resolve: {
-        slow: function () {
-          return false;
+        fetchDelay: function () {
+          return 1;
         }
       }
     });
@@ -75,8 +85,18 @@ var App;
       controller: 'VideosCtrl',
       templateUrl: './pages/videos.html',
       resolve: {
-        slow: function () {
-          return true;
+        fetchDelay: function () {
+          return 1000;
+        }
+      }
+    });
+
+    $routes.when('/videos/super-slow', {
+      controller: 'VideosCtrl',
+      templateUrl: './pages/videos.html',
+      resolve: {
+        fetchDelay: function () {
+          return 5000;
         }
       }
     });
