@@ -1,86 +1,88 @@
 var App;
-(function() {
-  App = angular.module('App', []);
+(function () {
+  App = angular.module('App', ['ngRoute']);
 
-  App.run(['$rootScope', function($rootScope) {
-    var _getTopScope = function() {
+  App.run(['$rootScope', function ($rootScope) {
+    var _getTopScope = function () {
       return $rootScope;
       //return angular.element(document).scope();
     };
 
-    $rootScope.ready = function() {
+    $rootScope.ready = function () {
       var $scope = _getTopScope();
       $scope.status = 'ready';
-      if(!$scope.$$phase) $scope.$apply();
+      if (!$scope.$$phase) $scope.$apply();
     };
-    $rootScope.loading = function() {
+    $rootScope.loading = function () {
       var $scope = _getTopScope();
       $scope.status = 'loading';
-      if(!$scope.$$phase) $scope.$apply();
+      if (!$scope.$$phase) $scope.$apply();
     };
-    $rootScope.$on('$routeChangeStart', function() {
+    $rootScope.$on('$routeChangeStart', function () {
       _getTopScope().loading();
     });
   }]);
 
-  App.controller('IndexCtrl', ['$scope', '$http', function($scope, $http) {
+  App.controller('IndexCtrl', ['$scope', '$http', function ($scope, $http) {
     $scope.some_value = 'Val';
     $scope.ready();
-    $scope.names = ['matias','val','mark'];
+    $scope.names = ['matias', 'val', 'mark'];
   }]);
 
-  App.controller('VideosCtrl', ['$scope', '$http', 'slow', function($scope, $http, isSlow) {
-    var callbackToken = 'JSON_CALLBACK';
-    var url = 'https://gdata.youtube.com/feeds/api/standardfeeds/top_rated?time=today&alt=json&callback=' + callbackToken;
+  App.controller('VideosCtrl', ['$scope', '$http', 'slow', function ($scope, $http, isSlow) {
+    var url = './data/videos.json';
     var timeout = isSlow ? 2000 : 1;
-    $http.jsonp(url).success(function(data) {
-      setTimeout(function() {
-        var feed = data['feed'];
+    $http.get(url).then(function (response) {
+      setTimeout(function () {
+        var feed = response.data['feed'];
         var entries = feed['entry'];
         $scope.videos = [];
-        for(var i=0;i<entries.length;i++) {
+        var from = 0;
+        var to = entries.length / 2;
+        if (isSlow) {
+          from = to;
+          to = entries.length;
+        }
+        for (var i = from; i < to; i++) {
           var entry = entries[i];
-          var title = entry['title']['$t'];
-          $scope.videos.push({
-            title : title
-          });
+          $scope.videos.push(entry);
         };
         $scope.ready();
       }, timeout);
     });
   }]);
 
-  App.config(['$routeProvider', '$locationProvider', function($routes, $location) {
+  App.config(['$routeProvider', '$locationProvider', function ($routes, $location) {
 
     $location.hashPrefix('!');
 
-    $routes.when('/home',{
-      controller : 'IndexCtrl',
-      templateUrl : './pages/index.html'
+    $routes.when('/home', {
+      controller: 'IndexCtrl',
+      templateUrl: './pages/index.html'
     });
 
-    $routes.when('/videos',{
-      controller : 'VideosCtrl',
-      templateUrl : './pages/videos.html',
-      resolve : {
-        slow : function() {
+    $routes.when('/videos', {
+      controller: 'VideosCtrl',
+      templateUrl: './pages/videos.html',
+      resolve: {
+        slow: function () {
           return false;
         }
       }
     });
 
-    $routes.when('/videos/slow',{
-      controller : 'VideosCtrl',
-      templateUrl : './pages/videos.html',
-      resolve : {
-        slow : function() {
+    $routes.when('/videos/slow', {
+      controller: 'VideosCtrl',
+      templateUrl: './pages/videos.html',
+      resolve: {
+        slow: function () {
           return true;
         }
       }
     });
 
     $routes.otherwise({
-      redirectTo : '/home'
+      redirectTo: '/home'
     });
 
   }]);
