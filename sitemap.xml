@@ -1,11 +1,11 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>http://www.yourwebsite.com/#!/home</loc>
+    <loc>http://ngseo.cuubas.dk/#!/home</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>http://www.yourwebsite.com/#!/videos</loc>
+    <loc>http://ngseo.cuubas.dk/#!/videos</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
